@@ -27,7 +27,7 @@ module Facebooker
   # preload_fql string   A preloaded FQL query.
   class ApplicationProperties
     include Model
-    FIELDS = [ :application_name, :callback_url, :post_install_url, :edit_url, :dashboard_url,
+    FIELDS = [ :app_id, :application_name, :callback_url, :post_install_url, :edit_url, :dashboard_url,
                :uninstall_url, :ip_list, :email, :description, :use_iframe, :desktop, :is_mobile,
                :default_fbml, :default_column, :message_url, :message_action, :about_url,
                :private_install, :installable, :privacy_url, :help_url, :see_all_url, :tos_url,
