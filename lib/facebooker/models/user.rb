@@ -51,6 +51,13 @@ module Facebooker
     id_is :uid
     alias :facebook_id :id
 
+
+
+    def is_app_user?
+      options = {:uid => self.id}
+      @session.post('facebook.users.isAppUser', options, false)
+    end
+
     # Returns a user's events, params correspond to API call parameters (except UID):
     # http://wiki.developers.facebook.com/index.php/Events.get
     # E.g:
