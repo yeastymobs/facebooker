@@ -11,8 +11,8 @@ module Facebooker
       include Model
       attr_accessor :message, :time, :status_id
     end
-    FIELDS = [:status, :political, :pic_small, :name, :quotes, :is_app_user, :tv, :profile_update_time, :meeting_sex, :hs_info, :timezone, :relationship_status, :hometown_location, :about_me, :wall_count, :significant_other_id, :pic_big, :music, :work_history, :sex, :religion, :notes_count, :activities, :pic_square, :movies, :has_added_app, :education_history, :birthday, :birthday_date, :first_name, :meeting_for, :last_name, :interests, :current_location, :pic, :books, :affiliations, :locale, :profile_url, :proxied_email, :email_hashes, :allowed_restrictions, :pic_with_logo, :pic_big_with_logo, :pic_small_with_logo, :pic_square_with_logo, :online_presence, :verified, :profile_blurb, :username, :website, :is_blocked, :family]
-    STANDARD_FIELDS = [:uid, :first_name, :last_name, :name, :timezone, :birthday, :sex, :affiliations, :locale, :profile_url, :proxied_email]
+    FIELDS = [:status, :political, :pic_small, :name, :quotes, :is_app_user, :tv, :profile_update_time, :meeting_sex, :hs_info, :timezone, :relationship_status, :hometown_location, :about_me, :wall_count, :significant_other_id, :pic_big, :music, :work_history, :sex, :religion, :notes_count, :activities, :pic_square, :movies, :has_added_app, :education_history, :birthday, :birthday_date, :first_name, :meeting_for, :last_name, :interests, :current_location, :pic, :books, :affiliations, :locale, :profile_url, :proxied_email, :email_hashes, :allowed_restrictions, :pic_with_logo, :pic_big_with_logo, :pic_small_with_logo, :pic_square_with_logo, :online_presence, :verified, :profile_blurb, :username, :website, :is_blocked, :family, :email]
+    STANDARD_FIELDS = [:uid, :first_name, :last_name, :name, :timezone, :birthday, :sex, :affiliations, :locale, :profile_url, :proxied_email, :email]
     populating_attr_accessor(*FIELDS)
     attr_reader :affiliations
     populating_hash_settable_accessor :current_location, Location
@@ -24,6 +24,8 @@ module Facebooker
     populating_hash_settable_list_accessor :family, FamilyRelativeInfo
 
     populating_attr_reader :status
+
+    attr_accessor :request_locale
 
     # Can pass in these two forms:
     # id, session, (optional) attribute_hash
@@ -190,6 +192,15 @@ module Facebooker
       @session.post('facebook.stream.addComment', {:post_id=>post_id, :comment=>comment})
     end
 
+    ###
+    # Add a like on a post
+    #
+    # See: http://wiki.developers.facebook.com/index.php/Stream.addLike
+    #
+    # +post_id+ the post_id for the post that is being commented on
+    def add_like_on(post_id)
+      @session.post('facebook.stream.addLike', {:post_id=>post_id})
+    end
 
      def friend_lists
        @friend_lists ||= @session.post('facebook.friends.getLists').map do |hash|
@@ -212,7 +223,9 @@ module Facebooker
     # Retrieve profile data for logged in user
     # Optional: list of fields to retrieve as symbols
     def populate(*fields)
-      session.post('facebook.users.getInfo', :fields => collect(fields), :uids => id) do |response|
+      arguments = {:fields => collect(fields), :uids => id}
+      arguments[:locale]=request_locale unless request_locale.nil?
+      session.post('facebook.users.getInfo', arguments) do |response|
         populate_from_hash!(response.first)
       end
     end

@@ -79,6 +79,25 @@ class Facebooker::UserTest < Test::Unit::TestCase
   def test_raises_when_no_session_bound
     assert_raises(Facebooker::Model::UnboundSessionException) { Facebooker::User.new(1, nil).populate }
   end
+  
+  def test_passes_request_locale_when_set
+    session = mock()
+    session.expects(:post).with("facebook.users.getInfo",has_entry(:locale,"es_ES"))
+    Facebooker::Session.expects(:current).returns(session)
+    user=Facebooker::User.new(1)
+    user.request_locale="es_ES"
+    user.name
+    
+  end
+  
+  def test_doesnt_pass_request_locale_when_not_set
+    session = mock()
+    session.expects(:post).with("facebook.users.getInfo",Not(has_key(:locale)))
+    Facebooker::Session.expects(:current).returns(session)
+    user=Facebooker::User.new(1)
+    user.name
+    
+  end
 
   def test_can_set_mobile_fbml
     @user.expects(:set_profile_fbml).with(nil,"test",nil,nil)
@@ -181,6 +200,12 @@ class Facebooker::UserTest < Test::Unit::TestCase
     @user = Facebooker::User.new(548871286, @session)
     expect_http_posts_with_responses(example_comment_on_response)
     assert_equal('703826862_78463536863', @user.comment_on('703826862_78463536862', :message => 'that was hilarious!'))
+  end
+
+  def test_add_like_on
+    @user = Facebooker::User.new(548871286, @session)
+    expect_http_posts_with_responses(example_add_like_on_response)
+    assert_equal('1', @user.add_like_on('703826862_78463536862'))
   end
 
   def test_can_send_email
@@ -404,6 +429,13 @@ class Facebooker::UserTest < Test::Unit::TestCase
 <?xml version="1.0" encoding="UTF-8"?>
 <stream_addComment_response xmlns="http://api.facebook.com/1.0/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://api.facebook.com/1.0/ http://api.facebook.com/1.0/facebook.xsd">703826862_78463536863</stream_addComment_response>
     eoxml
+  end
+  
+  def example_add_like_on_response
+        <<-eoxml
+    <?xml version="1.0" encoding="UTF-8"?>
+    <stream_addLike_response xmlns="http://api.facebook.com/1.0/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://api.facebook.com/1.0/ http://api.facebook.com/1.0/facebook.xsd">1</stream_addLike_response>
+        eoxml
   end
 
   def example_events_rsvp_xml
